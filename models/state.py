@@ -5,6 +5,7 @@ from os import getenv
 from models.base_model import Base
 from models.base_model import BaseModel
 from models.city import City
+import sqlalchemy
 from sqlalchemy import Column
 from sqlalchemy import String
 from sqlalchemy.orm import relationship
@@ -20,9 +21,21 @@ class State(BaseModel, Base):
         name (sqlalchemy String): The name of the State.
         cities (sqlalchemy relationship): The State-City relationship.
     """
-    __tablename__ = "states"
-    name = Column(String(128), nullable=False)
-    cities = relationship("City",  backref="state", cascade="delete")
+    if getenv("HBNB_TYPE_STORAGE") == "db":
+        __tablename__ = "states"
+        name = Column(String(128), nullable=False)
+        cities = relationship("City",  backref="state", cascade="delete")
+    else:
+        name = ""
+
+    def __init__(self, *args, **kwargs):
+        """Initializes a new State.
+
+        Args:
+            *args: Unused.
+            **kwargs: Key/value pairs of attributes.
+        """
+        super().__init__(*args, **kwargs)
 
     if getenv("HBNB_TYPE_STORAGE") != "db":
         @property
