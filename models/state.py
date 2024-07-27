@@ -2,6 +2,7 @@
 """Defines the State class."""
 import models
 from os import getenv
+from sqlalchemy.ext.declarative import declarative_base
 from models.base_model import Base
 from models.base_model import BaseModel
 from models.city import City
@@ -9,6 +10,7 @@ import sqlalchemy
 from sqlalchemy import Column
 from sqlalchemy import String
 from sqlalchemy.orm import relationship
+import shlex
 
 
 class State(BaseModel, Base):
@@ -24,7 +26,7 @@ class State(BaseModel, Base):
     if getenv("HBNB_TYPE_STORAGE") == "db":
         __tablename__ = "states"
         name = Column(String(128), nullable=False)
-        cities = relationship("City",  backref="state", cascade="delete")
+        cities = relationship("City",  backref="state", cascade="delete, delete-orphan, all")
     else:
         name = ""
 
@@ -42,7 +44,14 @@ class State(BaseModel, Base):
         def cities(self):
             """Get a list of all related City objects."""
             city_list = []
-            for city in list(models.storage.all(City).values()):
-                if city.state_id == self.id:
-                    city_list.append(city)
-            return city_list
+            var = models.storage.all()
+            lista = []
+            for key in var:
+                city = key.replace('.', ' ')
+                city = shlex.split(city)
+                if (city[0] == 'City'):
+                    lista.append(var[key])
+            for elem in lista:
+                if (elem.state_id == self.id):
+                    city_list.append(elem)
+            return (city_list)
